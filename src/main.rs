@@ -75,7 +75,7 @@ fn main() {
     let count: u32 = 7;
     let start_id: u32 = 0;
 
-    let tree = LayoutTree::vstack(start_id, count, (1, 2), &screen);
+    let tree = LayoutTree::hstack(start_id, count, (0, 2), &screen);
     let zones: Vec<(u32, Rect)> = tree.compute(screen);
 
     render_ascii_layout(&zones);
