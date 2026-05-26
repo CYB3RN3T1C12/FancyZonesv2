@@ -1,7 +1,7 @@
 use crate::layout::{LayoutTree, Direction, Rect};
 
 impl LayoutTree {
-    pub fn bsp(start_id: u32, window_count: u32, screen: &Rect) -> LayoutTree {
+    pub fn bsp(start_id: u32, window_count: u32, _stacks: (u32, u32), screen: &Rect) -> LayoutTree {
         build_bsp(start_id, window_count, screen.width, screen.height)
     }
 }

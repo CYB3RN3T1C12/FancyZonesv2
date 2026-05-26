@@ -25,7 +25,7 @@ pub fn generate_grid_pattern(n: u32) -> Vec<u32> {
 }
 
 impl LayoutTree {
-    pub fn grid(start_id: u32, window_count: u32, _screen: &Rect) -> LayoutTree {
+    pub fn grid(start_id: u32, window_count: u32, _stacks: (u32, u32), _screen: &Rect) -> LayoutTree {
         let rows: Vec<u32> = generate_grid_pattern(window_count);
         let (layout, _) = build_grid_rows(start_id, &rows);
         layout
