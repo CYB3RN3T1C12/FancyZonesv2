@@ -4,6 +4,7 @@ pub mod columns;
 pub mod vstack;
 pub mod hstack;
 pub mod grid;
+pub mod pattern;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rect {
@@ -19,7 +20,9 @@ pub enum Direction {
 }
 
 pub enum LayoutTree {
-    Leaf(u32),
+    Leaf(
+        u32
+    ),
     Split {
         direction: Direction,
         ratio: f32,
