@@ -77,7 +77,7 @@ fn main() {
     let count: u32 = 9;
     let start_id: u32 = 0;
 
-    let tree: LayoutTree = LayoutTree::rows(start_id, count, (0, 4));
+    let tree: LayoutTree = LayoutTree::grid(start_id, count, (0, 4));
     let zones: Vec<(u32, Rect)> = tree.compute(screen);
 
     render_ascii_layout(&zones);

@@ -22,7 +22,7 @@ fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> LayoutTree {
     let mut next_id = start_id;
 
     for count in counts {
-        let column = build_column(next_id, count);
+        let column = build_stack(next_id, count);
         columns.push(column);
         next_id += count;
     }
@@ -30,7 +30,7 @@ fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> LayoutTree {
     fold_horizontal(columns)
 }
 
-fn build_column(start_id: u32, count: u32) -> LayoutTree {
+fn build_stack(start_id: u32, count: u32) -> LayoutTree {
     if count == 1 {
         return LayoutTree::Leaf(start_id);
     }
