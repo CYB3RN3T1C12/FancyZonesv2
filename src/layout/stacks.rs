@@ -1,12 +1,11 @@
-// stack_pattern.rs
-
-/// Pattern generator for all 1‑D stack‑based layouts:
-/// - rows
-/// - columns
-/// - vstack
-/// - hstack
-///
-/// This replaces all per‑file compute_stack_counts() functions.
+/// Generate a stack pattern
+/// 
+/// ## Arguments
+/// * `zones` - The number of zones
+/// * `stacks` - The number of stacks
+/// 
+/// ## Returns
+/// * a `Vec<u32>` - The stack pattern
 pub fn generate_stack_pattern(zones: u32, stacks: (u32, u32)) -> Vec<u32> {
     let mut total = stacks.0 + stacks.1;
 

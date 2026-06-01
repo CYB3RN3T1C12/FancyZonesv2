@@ -1,6 +1,15 @@
 use crate::layout::{LayoutTree, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
 impl LayoutTree {
+    /// Build a vstack layout
+    /// 
+    /// ## Arguments
+    /// * `start_id` - The id of the first window
+    /// * `count` - The number of windows
+    /// * `stacks` - The number of stacks
+    /// 
+    /// ## Returns
+    /// * a `LayoutTree` - The root of the vstack layout
     pub fn vstack(
         start_id: u32,
         window_count: u32,
@@ -10,6 +19,15 @@ impl LayoutTree {
     }
 }
 
+/// Build a vstack layout
+/// 
+/// ## Arguments
+/// * `start_id` - The id of the first window
+/// * `window_count` - The number of windows
+/// * `stacks` - The number of stacks
+/// 
+/// ## Returns
+/// * a `LayoutTree` - The root of the vstack layout
 fn build_vstack(start_id: u32, window_count: u32, stacks: (u32, u32)) -> LayoutTree {
     if window_count <= 1 {
         return LayoutTree::Leaf(start_id);
@@ -55,6 +73,14 @@ fn build_vstack(start_id: u32, window_count: u32, stacks: (u32, u32)) -> LayoutT
     fold_horizontal(columns)
 }
 
+/// Build a single column of rows (vertical stacking)
+/// 
+/// ## Arguments
+/// * `start_id` - The id of the first window
+/// * `count` - The number of windows
+/// 
+/// ## Returns
+/// * a `LayoutTree` - The root of the vstack layout
 fn build_stack(start_id: u32, count: u32) -> LayoutTree {
     if count == 1 {
         return LayoutTree::Leaf(start_id);
@@ -75,6 +101,14 @@ pub struct LayoutVStack{
 }
 
 impl LayoutVStack {
+    /// Create a new LayoutVStack
+    /// 
+    /// ## Arguments
+    /// * `start_id` - The id of the first window
+    /// * `zones` - The number of zones
+    /// 
+    /// ## Returns
+    /// * a `LayoutVStack` - The vstack layout
     pub fn new(start_id: u32, zones: u32) -> Self {
         Self {
             start_id,
@@ -83,16 +117,28 @@ impl LayoutVStack {
         }
     }
 
+    /// Add stacks
+    /// 
+    /// ## Arguments
+    /// * `stacks` - The number of stacks
     pub fn add_stacks(&mut self, stacks: (u32, u32)) {
         self.stacks.0 += stacks.0;
         self.stacks.1 += stacks.1;
     }
 
+    /// Remove stacks
+    /// 
+    /// ## Arguments
+    /// * `stacks` - The number of stacks
     pub fn remove_stacks(&mut self, stacks: (u32, u32)) {
         self.stacks.0 = self.stacks.0.saturating_sub(stacks.0);
         self.stacks.1 = self.stacks.1.saturating_sub(stacks.1);
     }
 
+    /// Compile the vstack layout
+    /// 
+    /// ## Returns
+    /// * a `LayoutTree` - The root of the vstack layout
     pub fn compile(&self) -> LayoutTree {
         LayoutTree::vstack(self.start_id, self.zones, self.stacks)
     }

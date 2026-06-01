@@ -4,7 +4,13 @@ mod layout;
 
 use layout::{LayoutType, LayoutTree, Rect};
 
-
+/// Render a layout's zones as an ASCII graph\
+/// Great for debugging and visualizing layouts
+/// 
+/// ## Arguments
+/// * `zones`: A vector of tuples containing the zone's ID and its bounding Rect
+/// ## Returns
+/// * None
 pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
     let cell_w: u32 = 15;  // smaller cells = more detail
     let cell_h: u32 = 30;  // 2 spaces ≈ 1 line
@@ -64,6 +70,7 @@ pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
     }
 }
 
+/// Entry point
 fn main() {
     let screen: Rect = Rect {
         x: 0,
@@ -77,7 +84,7 @@ fn main() {
     let start_id: u32 = 0;
     let count: u32 = 21;
 
-    let mut layout: LayoutType = LayoutType::vstack(start_id, count);
+    let mut layout: LayoutType = LayoutType::grid(start_id, count);
     layout.add_stacks(0, 2);
     
     let geometry: LayoutTree = layout.compile();
