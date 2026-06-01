@@ -2,7 +2,7 @@
 
 mod layout;
 
-use layout::{LayoutTree, Rect};
+use layout::{LayoutType, LayoutTree, Rect};
 
 
 pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
@@ -74,11 +74,14 @@ fn main() {
 
     // Testing below
 
-    let count: u32 = 9;
     let start_id: u32 = 0;
+    let count: u32 = 21;
 
-    let tree: LayoutTree = LayoutTree::grid(start_id, count, (0, 4));
-    let zones: Vec<(u32, Rect)> = tree.compute(screen);
+    let mut layout: LayoutType = LayoutType::vstack(start_id, count);
+    layout.add_stacks(0, 2);
+    
+    let geometry: LayoutTree = layout.compile();
+    let zones: Vec<(u32, Rect)> = geometry.compute(&screen);
 
     render_ascii_layout(&zones);
 

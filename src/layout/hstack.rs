@@ -1,4 +1,4 @@
-use crate::layout::{Direction, LayoutTree, pattern::generate_stack_pattern};
+use crate::layout::{LayoutTree, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
 impl LayoutTree {
     pub fn hstack(
@@ -68,38 +68,32 @@ fn build_stack(start_id: u32, count: u32) -> LayoutTree {
     fold_horizontal(items)
 }
 
-fn fold_horizontal(mut items: Vec<LayoutTree>) -> LayoutTree {
-    if items.len() == 1 {
-        return items.remove(0);
-    }
-
-    let right = items.pop().unwrap();
-    let left_count = items.len() as f32;
-    let total_count = left_count + 1.0;
-    let left = fold_horizontal(items);
-
-    LayoutTree::Split {
-        direction: Direction::Horizontal,
-        ratio: left_count / total_count,
-        left: Box::new(left),
-        right: Box::new(right),
-    }
+pub struct LayoutHStack{
+    start_id: u32,
+    zones: u32,
+    stacks: (u32, u32),
 }
 
-fn fold_vertical(mut items: Vec<LayoutTree>) -> LayoutTree {
-    if items.len() == 1 {
-        return items.remove(0);
+impl LayoutHStack {
+    pub fn new(start_id: u32, zones: u32) -> Self {
+        Self {
+            start_id,
+            zones,
+            stacks: (0, 1),
+        }
     }
 
-    let bottom = items.pop().unwrap();
-    let top_count = items.len() as f32;
-    let total_count = top_count + 1.0;
-    let top = fold_vertical(items);
+    pub fn add_stacks(&mut self, stacks: (u32, u32)) {
+        self.stacks.0 += stacks.0;
+        self.stacks.1 += stacks.1;
+    }
 
-    LayoutTree::Split {
-        direction: Direction::Vertical,
-        ratio: top_count / total_count,
-        left: Box::new(top),
-        right: Box::new(bottom),
+    pub fn remove_stacks(&mut self, stacks: (u32, u32)) {
+        self.stacks.0 = self.stacks.0.saturating_sub(stacks.0);
+        self.stacks.1 = self.stacks.1.saturating_sub(stacks.1);
+    }
+
+    pub fn compile(&self) -> LayoutTree {
+        LayoutTree::hstack(self.start_id, self.zones, self.stacks)
     }
 }

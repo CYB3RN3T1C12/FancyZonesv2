@@ -24,3 +24,18 @@ fn build_bsp(start_id: u32, count: u32, split_left_right: bool) -> LayoutTree {
         right: Box::new(build_bsp(start_id + 1, count - 1, !split_left_right)),
     }
 }
+
+pub struct LayoutBSP{
+    start_id: u32,
+    zones: u32
+}
+
+impl LayoutBSP{
+    pub fn new(start_id: u32, zones: u32) -> LayoutBSP{
+        LayoutBSP{start_id, zones}
+    }
+
+    pub fn compile(&self) -> LayoutTree {
+        LayoutTree::bsp(self.start_id, self.zones, (0, 1))
+    }
+}

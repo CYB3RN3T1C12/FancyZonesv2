@@ -4,7 +4,8 @@ pub mod columns;
 pub mod vstack;
 pub mod hstack;
 pub mod grid;
-pub mod pattern;
+pub mod fold;   
+pub mod stacks;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rect {
@@ -32,9 +33,9 @@ pub enum LayoutTree {
 }
 
 impl LayoutTree {
-    pub fn compute(&self, screen: Rect) -> Vec<(u32, Rect)> {
+    pub fn compute(&self, screen: &Rect) -> Vec<(u32, Rect)> {
         let mut out: Vec<(u32, Rect)> = Vec::new();
-        self.compute_into(screen, &mut out);
+        self.compute_into(*screen, &mut out);
         out
     }
 
@@ -82,6 +83,62 @@ impl LayoutTree {
                     right.compute_into(right_rect, out);
                 }
             },
+        }
+    }
+}
+
+pub enum LayoutType {
+    Rows(rows::LayoutRows),
+    Columns(columns::LayoutColumns),
+    VStack(vstack::LayoutVStack),
+    HStack(hstack::LayoutHStack),
+    Grid(grid::LayoutGrid),
+    BSP(bsp::LayoutBSP),
+}
+
+impl LayoutType {
+    pub fn rows(start_id: u32, zones: u32) -> Self {
+        LayoutType::Rows(rows::LayoutRows::new(start_id, zones))
+    }
+
+    pub fn columns(start_id: u32, zones: u32) -> Self {
+        LayoutType::Columns(columns::LayoutColumns::new(start_id, zones))
+    }
+
+    pub fn hstack(start_id: u32, zones: u32) -> Self {
+        LayoutType::HStack(hstack::LayoutHStack::new(start_id, zones))
+    }
+
+    pub fn vstack(start_id: u32, zones: u32) -> Self {
+        LayoutType::VStack(vstack::LayoutVStack::new(start_id, zones))
+    }
+
+    pub fn grid(start_id: u32, zones: u32) -> Self {
+        LayoutType::Grid(grid::LayoutGrid::new(start_id, zones))
+    }
+
+    pub fn bsp(start_id: u32, zones: u32) -> Self {
+        LayoutType::BSP(bsp::LayoutBSP::new(start_id, zones))
+    }
+
+    pub fn add_stacks(&mut self, before: u32, after: u32) {
+        match self {
+            LayoutType::VStack(v) => v.add_stacks((before, after)),
+            LayoutType::HStack(h) => h.add_stacks((before, after)),
+            LayoutType::Rows(r)   => r.add_stacks(after),   // rows only use one value
+            LayoutType::Columns(c)=> c.add_stacks(after),
+            _ => {} // Grid and BSP ignore stack changes
+        }
+    }
+
+    pub fn compile(&self) -> LayoutTree {
+        match self {
+            LayoutType::VStack(v) => v.compile(),
+            LayoutType::HStack(h) => h.compile(),
+            LayoutType::Rows(r)   => r.compile(),
+            LayoutType::Columns(c)=> c.compile(),
+            LayoutType::Grid(g)   => g.compile(),
+            LayoutType::BSP(b)    => b.compile(),
         }
     }
 }

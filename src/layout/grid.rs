@@ -1,4 +1,4 @@
-use crate::layout::{Direction, LayoutTree};
+use crate::layout::{Direction, LayoutTree, fold::fold_horizontal};
 
 /// Grid-specific pattern generator.
 /// Attempts to approximate a square grid by:
@@ -73,21 +73,20 @@ fn build_stack(start_id: u32, count: u32) -> LayoutTree {
     fold_horizontal(items)
 }
 
-/// Fold a row horizontally into a BSP tree
-fn fold_horizontal(mut items: Vec<LayoutTree>) -> LayoutTree {
-    if items.len() == 1 {
-        return items.remove(0);
+pub struct LayoutGrid{
+    start_id: u32,
+    zones: u32
+}
+
+impl LayoutGrid{
+    pub fn new(start_id: u32, zones: u32) -> Self {
+        Self {
+            start_id,
+            zones
+        }
     }
 
-    let right = items.pop().unwrap();
-    let left_count = items.len() as f32;
-    let total_count = left_count + 1.0;
-    let left = fold_horizontal(items);
-
-    LayoutTree::Split {
-        direction: Direction::Horizontal,
-        ratio: left_count / total_count,
-        left: Box::new(left),
-        right: Box::new(right),
+    pub fn compile(&self) -> LayoutTree {
+        LayoutTree::grid(self.start_id, self.zones, (0, 1))
     }
 }
