@@ -20,19 +20,19 @@ pub enum Direction {
     Vertical,
 }
 
-pub enum LayoutTree {
+pub enum Geometry {
     Leaf(
         u32
     ),
     Split {
         direction: Direction,
         ratio: f32,
-        left: Box<LayoutTree>,
-        right: Box<LayoutTree>,
+        left: Box<Geometry>,
+        right: Box<Geometry>,
     },
 }
 
-impl LayoutTree {
+impl Geometry {
     pub fn compute(&self, screen: &Rect) -> Vec<(u32, Rect)> {
         let mut out: Vec<(u32, Rect)> = Vec::new();
         self.compute_into(*screen, &mut out);
@@ -41,8 +41,8 @@ impl LayoutTree {
 
     fn compute_into(&self, screen: Rect, out: &mut Vec<(u32, Rect)>) {
         match self {
-            LayoutTree::Leaf(id) => out.push((*id, screen)),
-            LayoutTree::Split {
+            Geometry::Leaf(id) => out.push((*id, screen)),
+            Geometry::Split {
                 direction,
                 ratio,
                 left,
@@ -87,58 +87,63 @@ impl LayoutTree {
     }
 }
 
-pub enum LayoutType {
-    Rows(rows::LayoutRows),
-    Columns(columns::LayoutColumns),
-    VStack(vstack::LayoutVStack),
-    HStack(hstack::LayoutHStack),
-    Grid(grid::LayoutGrid),
-    BSP(bsp::LayoutBSP),
+pub enum LayoutKind {
+    Rows,
+    Columns,
+    VStack,
+    HStack,
+    Grid,
+    BSP,
 }
 
-impl LayoutType {
-    pub fn rows(start_id: u32, zones: u32) -> Self {
-        LayoutType::Rows(rows::LayoutRows::new(start_id, zones))
-    }
+pub struct Layout {
+    kind: LayoutKind,
+    start_id: u32,
+    zones: u32,
+    stacks: (u32, u32),
+    external_padding: u32,
+    internal_padding: u32
+}
 
-    pub fn columns(start_id: u32, zones: u32) -> Self {
-        LayoutType::Columns(columns::LayoutColumns::new(start_id, zones))
-    }
-
-    pub fn hstack(start_id: u32, zones: u32) -> Self {
-        LayoutType::HStack(hstack::LayoutHStack::new(start_id, zones))
-    }
-
-    pub fn vstack(start_id: u32, zones: u32) -> Self {
-        LayoutType::VStack(vstack::LayoutVStack::new(start_id, zones))
-    }
-
-    pub fn grid(start_id: u32, zones: u32) -> Self {
-        LayoutType::Grid(grid::LayoutGrid::new(start_id, zones))
-    }
-
-    pub fn bsp(start_id: u32, zones: u32) -> Self {
-        LayoutType::BSP(bsp::LayoutBSP::new(start_id, zones))
-    }
-
+impl Layout {
     pub fn add_stacks(&mut self, before: u32, after: u32) {
-        match self {
-            LayoutType::VStack(v) => v.add_stacks((before, after)),
-            LayoutType::HStack(h) => h.add_stacks((before, after)),
-            LayoutType::Rows(r)   => r.add_stacks(after),   // rows only use one value
-            LayoutType::Columns(c)=> c.add_stacks(after),
-            _ => {} // Grid and BSP ignore stack changes
+        match self.kind {
+            LayoutKind::Rows | LayoutKind::Columns => {
+                self.stacks.1 += after;
+            }
+            LayoutKind::VStack | LayoutKind::HStack => {
+                self.stacks.0 += before;
+                self.stacks.1 += after;
+            }
+            LayoutKind::Grid | LayoutKind::BSP => {
+                // ignore
+            }
         }
     }
 
-    pub fn compile(&self) -> LayoutTree {
-        match self {
-            LayoutType::VStack(v) => v.compile(),
-            LayoutType::HStack(h) => h.compile(),
-            LayoutType::Rows(r)   => r.compile(),
-            LayoutType::Columns(c)=> c.compile(),
-            LayoutType::Grid(g)   => g.compile(),
-            LayoutType::BSP(b)    => b.compile(),
+    pub fn remove_stacks(&mut self, before: u32, after: u32) {
+        match self.kind {
+            LayoutKind::Rows | LayoutKind::Columns => {
+                self.stacks.1 -= after;
+            }
+            LayoutKind::VStack | LayoutKind::HStack => {
+                self.stacks.0 -= before;
+                self.stacks.1 -= after;
+            }
+            LayoutKind::Grid | LayoutKind::BSP => {
+                // ignore
+            }
+        }
+    }
+
+    pub fn compile(&self) -> Geometry {
+        match self.kind {
+            LayoutKind::Rows => Geometry::rows(self.start_id, self.zones, self.stacks),
+            LayoutKind::Columns => Geometry::columns(self.start_id, self.zones, self.stacks),
+            LayoutKind::VStack => Geometry::vstack(self.start_id, self.zones, self.stacks),
+            LayoutKind::HStack => Geometry::hstack(self.start_id, self.zones, self.stacks),
+            LayoutKind::Grid => Geometry::grid(self.start_id, self.zones, self.stacks),
+            LayoutKind::BSP => Geometry::bsp(self.start_id, self.zones, self.stacks),
         }
     }
 }

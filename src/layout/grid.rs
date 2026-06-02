@@ -1,4 +1,4 @@
-use crate::layout::{Direction, LayoutTree, stacks::generate_stack_pattern, fold::fold_horizontal};
+use crate::layout::{Direction, Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::fold_horizontal};
 
 /// Generate a grid pattern
 /// 
@@ -14,9 +14,9 @@ fn generate_grid_pattern(zones: u32) -> Vec<u32> {
     generate_stack_pattern(zones, (0, stacks))
 }
 
-impl LayoutTree {
-    pub fn grid(start_id: u32, window_count: u32, _stacks: (u32, u32)) -> LayoutTree {
-        let pattern = generate_grid_pattern(window_count);
+impl Geometry {
+    pub fn grid(start_id: u32, zones: u32, _stacks: (u32, u32)) -> Geometry {
+        let pattern = generate_grid_pattern(zones);
         let (layout, _) = build_rows(start_id, &pattern);
         layout
     }
@@ -29,8 +29,8 @@ impl LayoutTree {
 /// * `rows` - The number of windows in each row
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the rows layout
-fn build_rows(start_id: u32, rows: &[u32]) -> (LayoutTree, u32) {
+/// * a `Geometry` - The root of the rows layout
+fn build_rows(start_id: u32, rows: &[u32]) -> (Geometry, u32) {
     if rows.len() == 1 {
         let layout = build_stack(start_id, rows[0]);
         return (layout, start_id + rows[0]);
@@ -42,7 +42,7 @@ fn build_rows(start_id: u32, rows: &[u32]) -> (LayoutTree, u32) {
     let (rest, next_id) = build_rows(start_id + rows[0], &rows[1..]);
 
     (
-        LayoutTree::Split {
+        Geometry::Split {
             direction: Direction::Vertical,
             ratio,
             left: Box::new(top),
@@ -59,46 +59,29 @@ fn build_rows(start_id: u32, rows: &[u32]) -> (LayoutTree, u32) {
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the row
-fn build_stack(start_id: u32, count: u32) -> LayoutTree {
+/// * a `Geometry` - The root of the row
+fn build_stack(start_id: u32, count: u32) -> Geometry {
     if count == 1 {
-        return LayoutTree::Leaf(start_id);
+        return Geometry::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(LayoutTree::Leaf(start_id + offset));
+        items.push(Geometry::Leaf(start_id + offset));
     }
 
     fold_horizontal(items)
 }
 
-pub struct LayoutGrid{
-    start_id: u32,
-    zones: u32
-}
-
-impl LayoutGrid{
-    /// Create a new LayoutGrid
-    /// 
-    /// ## Arguments
-    /// * `start_id` - The id of the first window
-    /// * `zones` - The number of zones
-    /// 
-    /// ## Returns
-    /// * a `LayoutGrid` - The grid layout
-    pub fn new(start_id: u32, zones: u32) -> Self {
+impl Layout {
+    pub fn grid(start_id: u32, zones: u32) -> Self {
         Self {
+            kind: LayoutKind::Grid,
             start_id,
-            zones
+            zones,
+            stacks: (0, 0), // grid ignores stacks
+            external_padding: 0,
+            internal_padding: 0,
         }
-    }
-
-    /// Compile the grid layout
-    /// 
-    /// ## Returns
-    /// * a `LayoutTree` - The root of the grid layout
-    pub fn compile(&self) -> LayoutTree {
-        LayoutTree::grid(self.start_id, self.zones, (0, 1))
     }
 }

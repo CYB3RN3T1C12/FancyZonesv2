@@ -1,6 +1,6 @@
-use crate::layout::{LayoutTree, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
+use crate::layout::{Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
-impl LayoutTree {
+impl Geometry {
     /// Build a columns layout
     /// 
     /// ## Arguments
@@ -9,13 +9,13 @@ impl LayoutTree {
     /// * `stacks` - The number of stacks
     /// 
     /// ## Returns
-    /// * a `LayoutTree` - The root of the columns layout
+    /// * a `Geometry` - The root of the columns layout
     pub fn columns(
         start_id: u32,
-        window_count: u32,
+        zones: u32,
         stacks: (u32, u32),
-    ) -> LayoutTree {
-        build_columns(start_id, window_count, stacks)
+    ) -> Geometry {
+        build_columns(start_id, zones, stacks)
     }
 }
 
@@ -27,10 +27,10 @@ impl LayoutTree {
 /// * `stacks` - The number of stacks
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the columns layout
-fn build_columns(start_id: u32, zones: u32, stacks: (u32, u32)) -> LayoutTree {
+/// * a `Geometry` - The root of the columns layout
+fn build_columns(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
     if zones == 0 {
-        return LayoutTree::Leaf(start_id);
+        return Geometry::Leaf(start_id);
     }
 
     let counts = generate_stack_pattern(zones, stacks);
@@ -54,64 +54,29 @@ fn build_columns(start_id: u32, zones: u32, stacks: (u32, u32)) -> LayoutTree {
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the row
-fn build_stack(start_id: u32, count: u32) -> LayoutTree {
+/// * a `Geometry` - The root of the row
+fn build_stack(start_id: u32, count: u32) -> Geometry {
     if count == 1 {
-        return LayoutTree::Leaf(start_id);
+        return Geometry::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(LayoutTree::Leaf(start_id + offset));
+        items.push(Geometry::Leaf(start_id + offset));
     }
 
     fold_horizontal(items)
 }
 
-pub struct LayoutColumns{
-    start_id: u32,
-    zones: u32,
-    stacks: u32, // number of stacks AFTER the primary
-}
-
-impl LayoutColumns{
-    /// Create a new columns layout
-    /// 
-    /// ## Arguments
-    /// * `start_id` - The id of the first window
-    /// * `zones` - The number of zones
-    /// 
-    /// ## Returns
-    /// * a `LayoutColumns` - The columns layout
-    pub fn new(start_id: u32, zones: u32) -> Self{
-        Self{
+impl Layout {
+    pub fn columns(start_id: u32, zones: u32) -> Self {
+        Self {
+            kind: LayoutKind::Columns,
             start_id,
             zones,
-            stacks: 1, // default stack count
+            stacks: (0, 1),
+            external_padding: 0,
+            internal_padding: 0,
         }
-    }
-    
-    /// Add stacks
-    /// 
-    /// ## Arguments
-    /// * `stacks` - The number of stacks
-    pub fn add_stacks(&mut self, stacks: u32) {
-        self.stacks += stacks;
-    }
-
-    /// Remove stacks
-    /// 
-    /// ## Arguments
-    /// * `stacks` - The number of stacks
-    pub fn remove_stacks(&mut self, stacks: u32) {
-        self.stacks = self.stacks.saturating_sub(stacks);
-    }
-
-    /// Compile the columns layout
-    /// 
-    /// ## Returns
-    /// * a `LayoutTree` - The root of the columns layout
-    pub fn compile(&self) -> LayoutTree {
-        LayoutTree::columns(self.start_id, self.zones, (0, self.stacks))
     }
 }

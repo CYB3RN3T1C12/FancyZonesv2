@@ -1,6 +1,6 @@
-use crate::layout::{LayoutTree, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
+use crate::layout::{Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
-impl LayoutTree {
+impl Geometry {
     /// Build a hstack layout
     /// 
     /// ## Arguments
@@ -9,13 +9,13 @@ impl LayoutTree {
     /// * `stacks` - The number of stacks
     /// 
     /// ## Returns
-    /// * a `LayoutTree` - The root of the hstack layout
+    /// * a `Geometry` - The root of the hstack layout
     pub fn hstack(
         start_id: u32,
-        window_count: u32,
+        zones: u32,
         stacks: (u32, u32),
-    ) -> LayoutTree {
-        build_hstack(start_id, window_count, stacks)
+    ) -> Geometry {
+        build_hstack(start_id, zones, stacks)
     }
 }
 
@@ -23,14 +23,14 @@ impl LayoutTree {
 /// 
 /// ## Arguments
 /// * `start_id` - The id of the first window
-/// * `window_count` - The number of windows
+/// * `zones` - The number of windows
 /// * `stacks` - The number of stacks
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the hstack layout
-fn build_hstack(start_id: u32, window_count: u32, stacks: (u32, u32)) -> LayoutTree {
-    if window_count <= 1 {
-        return LayoutTree::Leaf(start_id);
+/// * a `Geometry` - The root of the hstack layout
+fn build_hstack(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
+    if zones <= 1 {
+        return Geometry::Leaf(start_id);
     }
 
     let requested_before = stacks.0;
@@ -40,14 +40,14 @@ fn build_hstack(start_id: u32, window_count: u32, stacks: (u32, u32)) -> LayoutT
     if total_stacks == 0 {
         total_stacks = 1;
     }
-    if total_stacks > window_count - 1 {
-        total_stacks = window_count - 1;
+    if total_stacks > zones - 1 {
+        total_stacks = zones - 1;
     }
 
     let before_stacks = requested_before.min(total_stacks);
 
     // NEW: unified stack pattern generator
-    let counts = generate_stack_pattern(window_count - 1, (before_stacks, total_stacks - before_stacks));
+    let counts = generate_stack_pattern(zones - 1, (before_stacks, total_stacks - before_stacks));
 
     let mut top_rows = Vec::new();
     let mut bottom_rows = Vec::new();
@@ -67,7 +67,7 @@ fn build_hstack(start_id: u32, window_count: u32, stacks: (u32, u32)) -> LayoutT
 
     let mut rows = Vec::new();
     rows.extend(top_rows);
-    rows.push(LayoutTree::Leaf(start_id)); // primary
+    rows.push(Geometry::Leaf(start_id)); // primary
     rows.extend(bottom_rows);
 
     fold_vertical(rows)
@@ -80,66 +80,29 @@ fn build_hstack(start_id: u32, window_count: u32, stacks: (u32, u32)) -> LayoutT
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the row
-fn build_stack(start_id: u32, count: u32) -> LayoutTree {
+/// * a `Geometry` - The root of the row
+fn build_stack(start_id: u32, count: u32) -> Geometry {
     if count == 1 {
-        return LayoutTree::Leaf(start_id);
+        return Geometry::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(LayoutTree::Leaf(start_id + offset));
+        items.push(Geometry::Leaf(start_id + offset));
     }
 
     fold_horizontal(items)
 }
 
-pub struct LayoutHStack{
-    start_id: u32,
-    zones: u32,
-    stacks: (u32, u32),
-}
-
-impl LayoutHStack {
-    /// Create a new LayoutHStack
-    /// 
-    /// ## Arguments
-    /// * `start_id` - The id of the first window
-    /// * `zones` - The number of zones
-    /// 
-    /// ## Returns
-    /// * a `LayoutHStack` - The hstack layout
-    pub fn new(start_id: u32, zones: u32) -> Self {
+impl Layout {
+    pub fn hstack(start_id: u32, zones: u32) -> Self {
         Self {
+            kind: LayoutKind::HStack,
             start_id,
             zones,
             stacks: (0, 1),
+            external_padding: 0,
+            internal_padding: 0,
         }
-    }
-
-    /// Add stacks
-    /// 
-    /// ## Arguments
-    /// * `stacks` - The number of stacks
-    pub fn add_stacks(&mut self, stacks: (u32, u32)) {
-        self.stacks.0 += stacks.0;
-        self.stacks.1 += stacks.1;
-    }
-
-    /// Remove stacks
-    /// 
-    /// ## Arguments
-    /// * `stacks` - The number of stacks
-    pub fn remove_stacks(&mut self, stacks: (u32, u32)) {
-        self.stacks.0 = self.stacks.0.saturating_sub(stacks.0);
-        self.stacks.1 = self.stacks.1.saturating_sub(stacks.1);
-    }
-
-    /// Compile the hstack layout
-    /// 
-    /// ## Returns
-    /// * a `LayoutTree` - The root of the hstack layout
-    pub fn compile(&self) -> LayoutTree {
-        LayoutTree::hstack(self.start_id, self.zones, self.stacks)
     }
 }

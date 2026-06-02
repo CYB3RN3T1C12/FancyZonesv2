@@ -1,6 +1,6 @@
-use crate::layout::{LayoutTree, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
+use crate::layout::{Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
-impl LayoutTree {
+impl Geometry {
     /// Build a rows layout
     /// 
     /// ## Arguments
@@ -9,13 +9,13 @@ impl LayoutTree {
     /// * `stacks` - The number of stacks
     /// 
     /// ## Returns
-    /// * a `LayoutTree` - The root of the rows layout
+    /// * a `Geometry` - The root of the rows layout
     pub fn rows(
         start_id: u32,
-        window_count: u32,
+        zones: u32,
         stacks: (u32, u32),
-    ) -> LayoutTree {
-        build_rows(start_id, window_count, stacks)
+    ) -> Geometry {
+        build_rows(start_id, zones, stacks)
     }
 }
 
@@ -27,15 +27,15 @@ impl LayoutTree {
 /// * `stacks` - The number of stacks
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the rows layout
-fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> LayoutTree {
+/// * a `Geometry` - The root of the rows layout
+fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
     if zones == 0 {
-        return LayoutTree::Leaf(start_id);
+        return Geometry::Leaf(start_id);
     }
 
     let counts = generate_stack_pattern(zones, stacks);
 
-    let mut columns: Vec<LayoutTree> = Vec::new();
+    let mut columns: Vec<Geometry> = Vec::new();
     let mut next_id = start_id;
 
     for count in counts {
@@ -54,64 +54,29 @@ fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> LayoutTree {
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `LayoutTree` - The root of the rows layout
-fn build_stack(start_id: u32, count: u32) -> LayoutTree {
+/// * a `Geometry` - The root of the rows layout
+fn build_stack(start_id: u32, count: u32) -> Geometry {
     if count == 1 {
-        return LayoutTree::Leaf(start_id);
+        return Geometry::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(LayoutTree::Leaf(start_id + offset));
+        items.push(Geometry::Leaf(start_id + offset));
     }
 
     fold_vertical(items)
 }
 
-pub struct LayoutRows {
-    start_id: u32,
-    zones: u32,
-    stacks: u32, // number of stacks AFTER the primary
-}
-
-impl LayoutRows {
-    /// Create a new rows layout
-    /// 
-    /// ## Arguments
-    /// * `start_id` - The id of the first window
-    /// * `zones` - The number of zones
-    /// 
-    /// ## Returns
-    /// * a `LayoutRows` - The rows layout
-    pub fn new(start_id: u32, zones: u32) -> Self {
+impl Layout {    
+    pub fn rows(start_id: u32, zones: u32) -> Self {
         Self {
+            kind: LayoutKind::Rows,
             start_id,
             zones,
-            stacks: 1, // default stack count   
+            stacks: (0, 1),
+            external_padding: 0,
+            internal_padding: 0,
         }
-    }
-
-    /// Add stacks
-    /// 
-    /// ## Arguments
-    /// * `stacks` - The number of stacks
-    pub fn add_stacks(&mut self, stacks: u32) {
-        self.stacks += stacks;
-    }
-
-    /// Remove stacks
-    /// 
-    /// ## Arguments
-    /// * `stacks` - The number of stacks
-    pub fn remove_stacks(&mut self, stacks: u32) {
-        self.stacks = self.stacks.saturating_sub(stacks);
-    }
-
-    /// Compile the rows layout
-    /// 
-    /// ## Returns
-    /// * a `LayoutTree` - The root of the rows layout
-    pub fn compile(&self) -> LayoutTree {
-        LayoutTree::rows(self.start_id, self.zones, (0, self.stacks))
     }
 }

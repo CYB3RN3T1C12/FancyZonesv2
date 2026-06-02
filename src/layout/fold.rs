@@ -1,6 +1,13 @@
-use crate::layout::{Direction, LayoutTree};
+use crate::layout::{Direction, Geometry};
 
-pub fn fold_horizontal(mut items: Vec<LayoutTree>) -> LayoutTree {
+/// Fold a vector of layout trees into a single layout tree
+/// 
+/// ## Arguments
+/// * `items` - The vector of layout trees to fold
+/// 
+/// ## Returns
+/// * a `Geometry` - The folded layout tree
+pub fn fold_horizontal(mut items: Vec<Geometry>) -> Geometry {
     if items.len() == 1 {
         return items.remove(0);
     }
@@ -10,7 +17,7 @@ pub fn fold_horizontal(mut items: Vec<LayoutTree>) -> LayoutTree {
     let total_count = left_count + 1.0;
     let left = fold_horizontal(items);
 
-    LayoutTree::Split {
+    Geometry::Split {
         direction: Direction::Horizontal,
         ratio: left_count / total_count,
         left: Box::new(left),
@@ -18,7 +25,14 @@ pub fn fold_horizontal(mut items: Vec<LayoutTree>) -> LayoutTree {
     }
 }
 
-pub fn fold_vertical(mut items: Vec<LayoutTree>) -> LayoutTree {
+/// Fold a vector of layout trees into a single layout tree
+/// 
+/// ## Arguments
+/// * `items` - The vector of layout trees to fold
+/// 
+/// ## Returns
+/// * a `Geometry` - The folded layout tree
+pub fn fold_vertical(mut items: Vec<Geometry>) -> Geometry {
     if items.len() == 1 {
         return items.remove(0);
     }
@@ -28,7 +42,7 @@ pub fn fold_vertical(mut items: Vec<LayoutTree>) -> LayoutTree {
     let total_count = top_count + 1.0;
     let top = fold_vertical(items);
 
-    LayoutTree::Split {
+    Geometry::Split {
         direction: Direction::Vertical,
         ratio: top_count / total_count,
         left: Box::new(top),
