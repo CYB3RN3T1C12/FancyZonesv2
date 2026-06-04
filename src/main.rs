@@ -84,7 +84,7 @@ fn main() {
     let start_id: u32 = 0;
     let count: u32 = 33;
 
-    let mut layout: Layout = Layout::grid(start_id, count);
+    let mut layout: Layout = Layout::vstack(start_id, count);
 
     println!("{layout:?}");
     layout.add_stacks(2, 0);
