@@ -1,6 +1,6 @@
-use crate::layout::{Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
+use crate::layout::{Tree, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
-impl Geometry {
+impl Tree {
     /// Build a rows layout
     /// 
     /// ## Arguments
@@ -9,12 +9,12 @@ impl Geometry {
     /// * `stacks` - The number of stacks
     /// 
     /// ## Returns
-    /// * a `Geometry` - The root of the rows layout
+    /// * a `Tree` - The root of the rows layout
     pub fn rows(
         start_id: u32,
         zones: u32,
         stacks: (u32, u32),
-    ) -> Geometry {
+    ) -> Tree {
         build_rows(start_id, zones, stacks)
     }
 }
@@ -27,15 +27,15 @@ impl Geometry {
 /// * `stacks` - The number of stacks
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the rows layout
-fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
+/// * a `Tree` - The root of the rows layout
+fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> Tree {
     if zones == 0 {
-        return Geometry::Leaf(start_id);
+        return Tree::Leaf(start_id);
     }
 
     let counts = generate_stack_pattern(zones, stacks);
 
-    let mut columns: Vec<Geometry> = Vec::new();
+    let mut columns: Vec<Tree> = Vec::new();
     let mut next_id = start_id;
 
     for count in counts {
@@ -54,15 +54,15 @@ fn build_rows(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the rows layout
-fn build_stack(start_id: u32, count: u32) -> Geometry {
+/// * a `Tree` - The root of the rows layout
+fn build_stack(start_id: u32, count: u32) -> Tree {
     if count == 1 {
-        return Geometry::Leaf(start_id);
+        return Tree::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(Geometry::Leaf(start_id + offset));
+        items.push(Tree::Leaf(start_id + offset));
     }
 
     fold_vertical(items)

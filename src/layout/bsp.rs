@@ -1,6 +1,6 @@
-use crate::layout::{Direction, Geometry, LayoutKind, Layout};
+use crate::layout::{Direction, Tree, LayoutKind, Layout};
 
-impl Geometry {
+impl Tree {
     /// Build a BSP layout
     /// 
     /// ## Arguments
@@ -9,8 +9,8 @@ impl Geometry {
     /// * `stacks` - The number of stacks
     /// 
     /// ## Returns
-    /// * a `Geometry` - The root of the BSP layout
-    pub fn bsp(start_id: u32, zones: u32, _stacks: (u32, u32)) -> Geometry {
+    /// * a `Tree` - The root of the BSP layout
+    pub fn bsp(start_id: u32, zones: u32, _stacks: (u32, u32)) -> Tree {
         build_bsp(start_id, zones, true)
     }
 }
@@ -23,10 +23,10 @@ impl Geometry {
 /// * `split_left_right` - Whether to split the tree left to right
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the BSP layout
-fn build_bsp(start_id: u32, count: u32, split_left_right: bool) -> Geometry {
+/// * a `Tree` - The root of the BSP layout
+fn build_bsp(start_id: u32, count: u32, split_left_right: bool) -> Tree {
     if count == 1 {
-        return Geometry::Leaf(start_id);
+        return Tree::Leaf(start_id);
     }
 
     let direction: Direction = if split_left_right {
@@ -35,10 +35,10 @@ fn build_bsp(start_id: u32, count: u32, split_left_right: bool) -> Geometry {
         Direction::Vertical
     };
 
-    Geometry::Split {
+    Tree::Branch {
         direction,
         ratio: 0.5,
-        left: Box::new(Geometry::Leaf(start_id)),
+        left: Box::new(Tree::Leaf(start_id)),
         right: Box::new(build_bsp(start_id + 1, count - 1, !split_left_right)),
     }
 }

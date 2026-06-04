@@ -1,6 +1,6 @@
-use crate::layout::{Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
+use crate::layout::{Tree, LayoutKind, Layout, stacks::generate_stack_pattern, fold::{fold_horizontal, fold_vertical}};
 
-impl Geometry {
+impl Tree {
     /// Build a hstack layout
     /// 
     /// ## Arguments
@@ -9,12 +9,12 @@ impl Geometry {
     /// * `stacks` - The number of stacks
     /// 
     /// ## Returns
-    /// * a `Geometry` - The root of the hstack layout
+    /// * a `Tree` - The root of the hstack layout
     pub fn hstack(
         start_id: u32,
         zones: u32,
         stacks: (u32, u32),
-    ) -> Geometry {
+    ) -> Tree {
         build_hstack(start_id, zones, stacks)
     }
 }
@@ -27,10 +27,10 @@ impl Geometry {
 /// * `stacks` - The number of stacks
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the hstack layout
-fn build_hstack(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
+/// * a `Tree` - The root of the hstack layout
+fn build_hstack(start_id: u32, zones: u32, stacks: (u32, u32)) -> Tree {
     if zones <= 1 {
-        return Geometry::Leaf(start_id);
+        return Tree::Leaf(start_id);
     }
 
     let requested_before = stacks.0;
@@ -67,7 +67,7 @@ fn build_hstack(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
 
     let mut rows = Vec::new();
     rows.extend(top_rows);
-    rows.push(Geometry::Leaf(start_id)); // primary
+    rows.push(Tree::Leaf(start_id)); // primary
     rows.extend(bottom_rows);
 
     fold_vertical(rows)
@@ -80,15 +80,15 @@ fn build_hstack(start_id: u32, zones: u32, stacks: (u32, u32)) -> Geometry {
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the row
-fn build_stack(start_id: u32, count: u32) -> Geometry {
+/// * a `Tree` - The root of the row
+fn build_stack(start_id: u32, count: u32) -> Tree {
     if count == 1 {
-        return Geometry::Leaf(start_id);
+        return Tree::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(Geometry::Leaf(start_id + offset));
+        items.push(Tree::Leaf(start_id + offset));
     }
 
     fold_horizontal(items)

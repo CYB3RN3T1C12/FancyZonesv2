@@ -12,8 +12,8 @@ use layout::{Layout, Geometry, Rect};
 /// ## Returns
 /// * None
 pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
-    let cell_w: u32 = 15;  // smaller cells = more detail
-    let cell_h: u32 = 30;  // 2 spaces ≈ 1 line
+    let cell_w: u32 = 10;  // smaller cells = more detail
+    let cell_h: u32 = 20;  // 2 spaces ≈ 1 line
 
     // Determine screen bounds
     let max_x: u32 = zones.iter().map(|(_, r)| r.x + r.width).max().unwrap_or(0);
@@ -64,7 +64,7 @@ pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
     }
 
     // Print the ASCII map
-    println!("\nASCII Geometry:\n");
+    println!("\nASCII Tree:\n");
     for row in grid {
         println!("{}", row.iter().collect::<String>());
     }
@@ -82,10 +82,14 @@ fn main() {
     // Testing below
 
     let start_id: u32 = 0;
-    let count: u32 = 8;
+    let count: u32 = 17;
 
-    let mut layout: Layout = Layout::columns(start_id, count);
-    layout.add_stacks(0, 2);
+    let mut layout: Layout = Layout::vstack(start_id, count);
+
+    println!("{layout:?}");
+    layout.add_stacks(3, 4);
+    layout.set_padding(30, 50);
+    println!("{layout:?}");
     
     let geometry: Geometry = layout.compile();
     let zones: Vec<(u32, Rect)> = geometry.compute(&screen);

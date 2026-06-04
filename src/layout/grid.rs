@@ -1,4 +1,4 @@
-use crate::layout::{Direction, Geometry, LayoutKind, Layout, stacks::generate_stack_pattern, fold::fold_horizontal};
+use crate::layout::{Direction, Tree, LayoutKind, Layout, stacks::generate_stack_pattern, fold::fold_horizontal};
 
 /// Generate a grid pattern
 /// 
@@ -14,8 +14,8 @@ fn generate_grid_pattern(zones: u32) -> Vec<u32> {
     generate_stack_pattern(zones, (0, stacks))
 }
 
-impl Geometry {
-    pub fn grid(start_id: u32, zones: u32, _stacks: (u32, u32)) -> Geometry {
+impl Tree {
+    pub fn grid(start_id: u32, zones: u32, _stacks: (u32, u32)) -> Tree {
         let pattern = generate_grid_pattern(zones);
         let (layout, _) = build_rows(start_id, &pattern);
         layout
@@ -29,8 +29,8 @@ impl Geometry {
 /// * `rows` - The number of windows in each row
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the rows layout
-fn build_rows(start_id: u32, rows: &[u32]) -> (Geometry, u32) {
+/// * a `Tree` - The root of the rows layout
+fn build_rows(start_id: u32, rows: &[u32]) -> (Tree, u32) {
     if rows.len() == 1 {
         let layout = build_stack(start_id, rows[0]);
         return (layout, start_id + rows[0]);
@@ -42,7 +42,7 @@ fn build_rows(start_id: u32, rows: &[u32]) -> (Geometry, u32) {
     let (rest, next_id) = build_rows(start_id + rows[0], &rows[1..]);
 
     (
-        Geometry::Split {
+        Tree::Branch {
             direction: Direction::Vertical,
             ratio,
             left: Box::new(top),
@@ -59,15 +59,15 @@ fn build_rows(start_id: u32, rows: &[u32]) -> (Geometry, u32) {
 /// * `count` - The number of windows
 /// 
 /// ## Returns
-/// * a `Geometry` - The root of the row
-fn build_stack(start_id: u32, count: u32) -> Geometry {
+/// * a `Tree` - The root of the row
+fn build_stack(start_id: u32, count: u32) -> Tree {
     if count == 1 {
-        return Geometry::Leaf(start_id);
+        return Tree::Leaf(start_id);
     }
 
     let mut items = Vec::new();
     for offset in 0..count {
-        items.push(Geometry::Leaf(start_id + offset));
+        items.push(Tree::Leaf(start_id + offset));
     }
 
     fold_horizontal(items)
