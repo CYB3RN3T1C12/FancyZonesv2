@@ -8,10 +8,9 @@ use crate::layout::{Direction, Tree, LayoutKind, Layout, stacks::generate_stack_
 /// ## Returns
 /// * a `Vec<u32>` - The grid pattern
 fn generate_grid_pattern(zones: u32) -> Vec<u32> {
-    let k = (zones as f32).sqrt() as u32; // floor(sqrt(n))
-    let stacks = if k*k == zones { k } else { k + 1 };
+    let k: u32 = (zones as f32).sqrt() as u32; // floor(sqrt(n))
 
-    generate_stack_pattern(zones, (0, stacks))
+    generate_stack_pattern(zones, (0, k))
 }
 
 impl Tree {
