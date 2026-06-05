@@ -29,10 +29,38 @@ pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
     for (zone_id, rect) in zones {
         let label: String = format!("{}", zone_id);
 
-        let x0: usize = (rect.x / cell_w) as usize;
-        let y0: usize = (rect.y / cell_h) as usize;
-        let x1: usize = ((rect.x + rect.width) / cell_w).min(cols as u32 - 1) as usize;
-        let y1: usize = ((rect.y + rect.height) / cell_h).min(rows as u32 - 1) as usize;
+        // Skip zero-size zones
+        if rect.width == 0 || rect.height == 0 {
+            continue;
+        }
+
+        // Compute cell indices and clamp to valid ranges
+        let cols_u32 = cols as u32;
+        let rows_u32 = rows as u32;
+
+        let mut x0_u32: u32 = rect.x / cell_w;
+        let mut y0_u32: u32 = rect.y / cell_h;
+        let mut x1_u32: u32 = (rect.x + rect.width) / cell_w;
+        let mut y1_u32: u32 = (rect.y + rect.height) / cell_h;
+
+        if cols_u32 > 0 {
+            x0_u32 = x0_u32.min(cols_u32.saturating_sub(1));
+            x1_u32 = x1_u32.min(cols_u32.saturating_sub(1));
+        }
+        if rows_u32 > 0 {
+            y0_u32 = y0_u32.min(rows_u32.saturating_sub(1));
+            y1_u32 = y1_u32.min(rows_u32.saturating_sub(1));
+        }
+
+        let x0: usize = x0_u32 as usize;
+        let y0: usize = y0_u32 as usize;
+        let x1: usize = x1_u32 as usize;
+        let y1: usize = y1_u32 as usize;
+
+        // If the computed box is invalid (empty or out of range), skip drawing it
+        if x0 > x1 || y0 > y1 {
+            continue;
+        }
 
         // Draw top and bottom borders
         for x in x0..=x1 {
@@ -52,13 +80,15 @@ pub fn render_ascii_layout(zones: &[(u32, Rect)]) {
         grid[y1][x0] = '+';
         grid[y1][x1] = '+';
 
-        // Place label inside the box (top left corner)
+        // Place label inside the box (top left corner) if there's space
         let label_x: usize = x0 + 1;
         let label_y: usize = y0 + 1;
 
-        for (i, ch) in label.chars().enumerate() {
-            if label_x + i < x1 {
-                grid[label_y][label_x + i] = ch;
+        if label_y < rows && label_x < x1 {
+            for (i, ch) in label.chars().enumerate() {
+                if label_x + i < x1 {
+                    grid[label_y][label_x + i] = ch;
+                }
             }
         }
     }
@@ -82,14 +112,14 @@ fn main() {
     // Testing below
 
     let start_id: u32 = 0;
-    let count: u32 = 33;
+    let count: u32 = 22;
 
-    let mut layout: Layout = Layout::vstack(start_id, count);
+    let mut layout: Layout = Layout::bsp(start_id, count);
 
     println!("{layout:?}");
-    layout.add_stacks(2, 0);
-    layout.remove_stacks(0, 1);
-    // layout.set_padding(30, 50);
+    // layout.add_stacks(2, 0);
+    // layout.remove_stacks(0, 1);
+    // layout.set_padding(10, 20);
     println!("{layout:?}");
     
     let geometry: Geometry = layout.compile();
