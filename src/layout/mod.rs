@@ -195,7 +195,7 @@ impl Tree {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum LayoutKind {
     Rows,
     Columns,
